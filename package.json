@@ -22,5 +22,9 @@
     "chai-http": "^3.0.0",
     "eslint": "^4.2.0",
     "mocha": "^3.4.2"
+  },
+  "dependencies": {
+    "cowsay": "^1.1.9",
+    "mongodb": "^2.2.30"
   }
 }
