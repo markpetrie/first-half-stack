@@ -18,6 +18,7 @@ describe('issues resource', () => {
 
     const issues = [
         {
+            _id: '12345',
             company: 'ABC Company',
             contact: 'Samantha Bloom',
             issue_category: 'User Login',
@@ -71,7 +72,6 @@ describe('issues resource', () => {
 
     it('returns all issues', () => {
 
-
         return request.get('/issues')
             .then(res => {
                 let saved = res.body;
@@ -80,4 +80,15 @@ describe('issues resource', () => {
                 assert.equal(saved[0].issue_title, issues[0].issue_title);
             });
     });
+
+    it('returns issue by id', () => {
+        return request.get('/issues/:id')
+            .send({_id: '12345'})
+            .then(res => {
+                let results = res.body;
+                assert.equal(results[0].contact, issues[0].contact);
+            });
+    });
+
+
 });
