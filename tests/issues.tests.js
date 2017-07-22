@@ -83,10 +83,22 @@ describe('issues resource', () => {
 
     it('returns requested issue by id', () => {
         return request.get('/issues/:id')
-            .send({_id: '12345'})
+            .send({ _id: '12345' })
             .then(res => {
                 let results = res.body;
                 assert.equal(results[0].contact, issues[0].contact);
             });
+    });
+
+    describe('issues resource - delete', () => {
+
+        it('deletes requested issue by id', () => {
+            return request.del('/issues/:id')
+                .send({ _id: '12345' })
+                .then(res => {
+                    let results = res.body;
+                    console.log(results);
+                });
+        });
     });
 });
