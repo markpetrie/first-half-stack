@@ -56,7 +56,7 @@ describe('issues resource', () => {
         }
     ];
 
-    it('saves', () => {
+    it('saves new issues', () => {
 
         return Promise.all(issues.map((issue) => {
             return request.post('/issues')
@@ -70,7 +70,7 @@ describe('issues resource', () => {
         }));
     });
 
-    it('returns all issues', () => {
+    it('returns all existing issues', () => {
 
         return request.get('/issues')
             .then(res => {
@@ -81,7 +81,7 @@ describe('issues resource', () => {
             });
     });
 
-    it('returns issue by id', () => {
+    it('returns requested issue by id', () => {
         return request.get('/issues/:id')
             .send({_id: '12345'})
             .then(res => {
@@ -89,6 +89,4 @@ describe('issues resource', () => {
                 assert.equal(results[0].contact, issues[0].contact);
             });
     });
-
-
 });
