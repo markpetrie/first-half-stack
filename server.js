@@ -3,7 +3,7 @@ const http = require('http');
 const app = require('./lib/app');
 const db = require('./lib/db');
 
-const url = 'mongodb://localhost:27017/support';
+const url = 'mongodb://localhost:27017/issues';
 db.connect(url);
 
 const server = http.createServer(app);
