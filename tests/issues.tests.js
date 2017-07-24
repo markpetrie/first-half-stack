@@ -3,13 +3,11 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 chai.use(chaiHttp);
 const { assert } = chai;
-
 const connection = require('../lib/db');
 const url = 'mongodb://localhost:27017/issues-test';
-
 const app = require('../lib/app');
 
-describe('issues resource', () => {
+describe('issues - POST, GET, PUT', () => {
 
     before(() => connection.connect(url));
     before(() => connection.db.dropDatabase());
@@ -18,7 +16,7 @@ describe('issues resource', () => {
 
     const issues = [
         {
-            _id: '12345',
+            _id: '597529252fb3f719fbebcc29',
             company: 'ABC Company',
             contact: 'Samantha Bloom',
             issue_category: 'User Login',
@@ -57,7 +55,6 @@ describe('issues resource', () => {
     ];
 
     it('saves new issues', () => {
-
         return Promise.all(issues.map((issue) => {
             return request.post('/issues')
                 .send(issue)
@@ -70,8 +67,7 @@ describe('issues resource', () => {
         }));
     });
 
-    it('returns all existing issues', () => {
-
+    it('returns all issues', () => {
         return request.get('/issues')
             .then(res => {
                 let saved = res.body;
@@ -81,23 +77,61 @@ describe('issues resource', () => {
             });
     });
 
-    it('returns requested issue by id', () => {
+    it('returns requested issue', () => {
         return request.get('/issues/:id')
-            .send({ _id: '12345' })
+            .send({ _id: '597529252fb3f719fbebcc29' })
             .then(res => {
                 let results = res.body;
                 assert.equal(results[0].contact, issues[0].contact);
             });
     });
 
-    describe('issues resource - delete', () => {
+    it('returns 404 not found if requested document does not exist', () => {
+        return request.get('/issues/:id')
+            .send({ _id: 'xyzabc' })
+            .then(res => {
+                let results = res.body;
+                assert.equal(results, '404 not found');
+            });
+    });
 
-        it('deletes requested issue by id', () => {
+    it('updates desired issue', () => {
+        return request.put('/issues/:id')
+            .send({
+                _id: '597529252fb3f719fbebcc29',
+                company: 'ABC Company',
+                contact: 'Samantha Bloom',
+                issue_category: 'User Login',
+                issue_title: 'Account locked due to failed login attempts',
+                issue_sev: 'Open',
+                issue_status: 'Closed',
+                assigned_to: 'Brad Cooper'
+            })
+            .then(res => {
+                let results = res.body;
+                assert.equal(results.n, 1);
+                assert.equal(results.ok, 1);
+                assert.equal(results.nModified, 1);
+            });
+    });
+
+    describe('issues - DEL', () => {
+
+        it('deletes requested issue, responds with { removed: true } message', () => {
             return request.del('/issues/:id')
-                .send({ _id: '12345' })
+                .send({ _id: '597529252fb3f719fbebcc29' })
                 .then(res => {
                     let results = res.body;
-                    console.log(results);
+                    assert.deepEqual(results, { removed: true });
+                });
+        });
+
+        it('returns { removed: false } message for requests to delete non-existent issues', () => {
+            return request.del('/issues/:id')
+                .send({ _id: 'xyzabc' })
+                .then(res => {
+                    let results = res.body;
+                    assert.deepEqual(results, { removed: false });
                 });
         });
     });
