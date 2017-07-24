@@ -12,6 +12,14 @@ describe('issues - POST, GET, PUT', () => {
     before(() => connection.connect(url));
     before(() => connection.db.dropDatabase());
 
+    it('drops database prior to running tests', () => {
+        request.get('/issues')
+            .then(res => {
+                let results = res.body;
+                assert.equal(results.length, 0);
+            });
+    });
+
     const request = chai.request(app);
 
     const issues = [
@@ -26,6 +34,7 @@ describe('issues - POST, GET, PUT', () => {
             assigned_to: 'Brad Cooper'
         },
         {
+            _id: '597585d0f9a5f12fda536296',
             company: 'ABC Company',
             contact: 'Daren Hackenstack',
             issue_category: 'Workflow',
@@ -35,6 +44,7 @@ describe('issues - POST, GET, PUT', () => {
             assigned_to: 'Brad Cooper'
         },
         {
+            _id: '597585d0f9a5f12fda536297',
             company: 'XYZ Company',
             contact: 'Tara Anderson',
             issue_category: 'Reports',
@@ -44,6 +54,7 @@ describe('issues - POST, GET, PUT', () => {
             assigned_to: 'Shannon Peterson'
         },
         {
+            _id: '597585d0f9a5f12fda536298',
             company: 'XYZ Company',
             contact: 'Greg Montgomery',
             issue_category: 'Notifications',
@@ -53,6 +64,8 @@ describe('issues - POST, GET, PUT', () => {
             assigned_to: 'Shannon Peterson'
         }
     ];
+
+    
 
     it('saves new issues', () => {
         return Promise.all(issues.map((issue) => {
@@ -68,7 +81,7 @@ describe('issues - POST, GET, PUT', () => {
     });
 
     it('returns all issues', () => {
-        return request.get('/issues')
+        request.get('/issues')
             .then(res => {
                 let saved = res.body;
                 assert.equal(saved.length, 4);
