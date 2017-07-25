@@ -3,20 +3,21 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 chai.use(chaiHttp);
 const { assert } = chai;
-const connection = require('../lib/db');
+const connect = require('../lib/db');
 const url = 'mongodb://localhost:27017/issues-test';
 const app = require('../lib/app');
+const ObjectID = require('mongodb').ObjectID;
 
 describe('issues - POST, GET, PUT', () => {
 
-    before(() => connection.connect(url));
-    before(() => connection.db.dropDatabase());
+    before(() => connect.connect(url));
+    before(() => connect.db.dropDatabase());
 
     it('drops database prior to running tests', () => {
         request.get('/issues')
+            .send(issues)
             .then(res => {
-                let results = res.body;
-                assert.equal(results.length, 0);
+                assert.equal(res.length, 0);
             });
     });
 
@@ -65,17 +66,18 @@ describe('issues - POST, GET, PUT', () => {
         }
     ];
 
-    
+
 
     it('saves new issues', () => {
         return Promise.all(issues.map((issue) => {
+            console.log(issue);
             return request.post('/issues')
                 .send(issue)
                 .then(res => {
                     let saved = res.body;
                     assert.ok(saved._id);
-                    assert.equal(saved.company, issue.company);
-                    assert.equal(saved.contact, issue.contact);
+                    assert.equal(saved.company, issues.company);
+                    assert.equal(saved.contact, issues.contact);
                 });
         }));
     });
