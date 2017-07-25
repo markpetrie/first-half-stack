@@ -7,6 +7,7 @@ const connect = require('../lib/db');
 const url = 'mongodb://localhost:27017/issues-test';
 const app = require('../lib/app');
 const ObjectID = require('mongodb').ObjectID;
+const request = chai.request(app);
 
 describe('issues - POST, GET, PUT', () => {
 
@@ -14,18 +15,16 @@ describe('issues - POST, GET, PUT', () => {
     before(() => connect.db.dropDatabase());
 
     it('drops database prior to running tests', () => {
-        request.get('/issues')
-            .send(issues)
+        return request.get('/issues')
             .then(res => {
-                assert.equal(res.length, 0);
+                // console.log('res', res.body.length);
+                assert.equal(res.body.length, 0);
             });
     });
 
-    const request = chai.request(app);
-
     const issues = [
         {
-            _id: '597529252fb3f719fbebcc29',
+            // _id: '597529252fb3f719fbebcc29',
             company: 'ABC Company',
             contact: 'Samantha Bloom',
             issue_category: 'User Login',
@@ -35,7 +34,7 @@ describe('issues - POST, GET, PUT', () => {
             assigned_to: 'Brad Cooper'
         },
         {
-            _id: '597585d0f9a5f12fda536296',
+            // _id: '597585d0f9a5f12fda536296',
             company: 'ABC Company',
             contact: 'Daren Hackenstack',
             issue_category: 'Workflow',
@@ -45,7 +44,7 @@ describe('issues - POST, GET, PUT', () => {
             assigned_to: 'Brad Cooper'
         },
         {
-            _id: '597585d0f9a5f12fda536297',
+            // _id: '597585d0f9a5f12fda536297',
             company: 'XYZ Company',
             contact: 'Tara Anderson',
             issue_category: 'Reports',
@@ -55,7 +54,7 @@ describe('issues - POST, GET, PUT', () => {
             assigned_to: 'Shannon Peterson'
         },
         {
-            _id: '597585d0f9a5f12fda536298',
+            // _id: '597585d0f9a5f12fda536298',
             company: 'XYZ Company',
             contact: 'Greg Montgomery',
             issue_category: 'Notifications',
@@ -66,54 +65,50 @@ describe('issues - POST, GET, PUT', () => {
         }
     ];
 
-
-
     it('saves new issues', () => {
-        return Promise.all(issues.map((issue) => {
-            console.log(issue);
+        return Promise.all(issues.map((issue, i) => {
             return request.post('/issues')
                 .send(issue)
                 .then(res => {
                     let saved = res.body;
                     assert.ok(saved._id);
-                    assert.equal(saved.company, issues.company);
-                    assert.equal(saved.contact, issues.contact);
+                    assert.equal(saved.company, issue.company);
+                    assert.equal(saved.contact, issue.contact);
+                    issues[i] = saved;
                 });
         }));
     });
 
     it('returns all issues', () => {
-        request.get('/issues')
+        return request.get('/issues')
             .then(res => {
+                // console.log(res.body);
                 let saved = res.body;
+                // console.log(res.body);
                 assert.equal(saved.length, 4);
-                assert.equal(saved[0].contact, issues[0].contact);
-                assert.equal(saved[0].issue_title, issues[0].issue_title);
+                assert.equal(saved[0].contact, issues[2].contact);
+                assert.equal(saved[0].issue_title, issues[2].issue_title);
             });
     });
 
     it('returns requested issue', () => {
-        return request.get('/issues/:id')
-            .send({ _id: '597529252fb3f719fbebcc29' })
+        return request.get(`/issues/${issues[0]._id}`)
+            // .send({ _id: '597529252fb3f719fbebcc29' })
             .then(res => {
                 let results = res.body;
-                assert.equal(results[0].contact, issues[0].contact);
+                console.log(results);
+                // console.log(results);
+                assert.equal(results.contact, issues[0].contact);
             });
     });
 
-    it('returns 404 not found if requested document does not exist', () => {
-        return request.get('/issues/:id')
-            .send({ _id: 'xyzabc' })
-            .then(res => {
-                let results = res.body;
-                assert.equal(results, '404 not found');
-            });
-    });
+
 
     it('updates desired issue', () => {
-        return request.put('/issues/:id')
+        // let putId = { _id: new ObjectID(issues[0]._id) };
+        
+        return request.put(`/issues/${ issues[0]._id }`)
             .send({
-                _id: '597529252fb3f719fbebcc29',
                 company: 'ABC Company',
                 contact: 'Samantha Bloom',
                 issue_category: 'User Login',
@@ -124,26 +119,32 @@ describe('issues - POST, GET, PUT', () => {
             })
             .then(res => {
                 let results = res.body;
-                assert.equal(results.n, 1);
-                assert.equal(results.ok, 1);
-                assert.equal(results.nModified, 1);
+                console.log('res.body: ', res.body);
+                assert.equal(issues[0].issue_status, 'Closed');
             });
     });
 
     describe('issues - DEL', () => {
 
         it('deletes requested issue, responds with { removed: true } message', () => {
-            return request.del('/issues/:id')
-                .send({ _id: '597529252fb3f719fbebcc29' })
+            return request.del('/issues/597529252fb3f719fbebcc29')
                 .then(res => {
                     let results = res.body;
                     assert.deepEqual(results, { removed: true });
                 });
         });
 
+        it('returns 404 not found if requested document does not exist', () => {
+            return request.get('/issues/597529252bb3f719fbebcc31')
+                .then(
+                    () => { throw new Error('Expected 404 error instead got 200'); },
+                    err => assert.ok(err.response.notFound)
+                );
+
+        });
+
         it('returns { removed: false } message for requests to delete non-existent issues', () => {
-            return request.del('/issues/:id')
-                .send({ _id: 'xyzabc' })
+            return request.del('/issues/597529252bb3f719fbebcc31')
                 .then(res => {
                     let results = res.body;
                     assert.deepEqual(results, { removed: false });
