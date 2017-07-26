@@ -51,11 +51,12 @@ const staticIssues = [
     }
 ];
 
+before(() => connect.connect(url));
+before(() => connect.db.dropDatabase());
 
 describe('issues -', () => {
 
-    before(() => connect.connect(url));
-    before(() => connect.db.dropDatabase());
+
 
     it('drops database prior to running tests', () => {
 
@@ -139,12 +140,13 @@ describe('issues -', () => {
 });
 
 describe('issues -', () => {
-
     it('returns 404 not found if requested document does not exist', () => {
         return request.get('/issues/597585d0f9a5f12fda536296')
-            .then((res) => 
+            .then(
                 () => { throw new Error('Expected 404 error instead got 200'); },
-            err => assert.ok(err.response.notFound)
+                err => {
+                    assert.equal(err.response.error.text, 'not found');
+                }
             );
     });
 });
