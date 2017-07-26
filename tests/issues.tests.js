@@ -141,7 +141,7 @@ describe('issues -', () => {
 describe('issues -', () => {
 
     it('returns 404 not found if requested document does not exist', () => {
-        return request.get('/issues/597813f5f107c3d099b69a19')
+        return request.get('/issues/597585d0f9a5f12fda536296')
             .then((res) => 
                 () => { throw new Error('Expected 404 error instead got 200'); },
             err => assert.ok(err.response.notFound)
