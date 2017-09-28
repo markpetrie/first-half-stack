@@ -4,7 +4,7 @@
   "description": "Code 401 first-half-stack lab",
   "main": "server.js",
   "scripts": {
-    "test": "mocha tests -w",
+    "test": "mocha tests",
     "start": "node server.js"
   },
   "repository": {
